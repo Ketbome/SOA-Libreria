@@ -598,17 +598,9 @@ def eliminar_libros():
 def estado_cuenta():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_address = ('localhost', 5008)
-    # Intenta la conexion en caso de no conectarse el servicio no esta encendido o no disponible
-    nombre = None
-    menuUN = """
-            +-------------------------------------+
-            | Ver estado de la cuenta             |
-            +-------------------------------------+
-            | Ingresar nombre del usuario         |
-            +-------------------------------------+
-
-            nombre: """
-    nombre = input(menuUN)
+    arg = str({"username": sesion["username"]}
+              ).replace("'", '"').encode()
+    # Se conecta al socket con la direccion
     try:
         sock.connect(server_address)
     except:
@@ -624,6 +616,43 @@ def estado_cuenta():
             menuUser()
         elif sesion["rol"] == "1":
             menuAdmin()
+    # Se manda al cliente los datos
+    sock.sendall(arg)
+    # Se espera la respuesta del cliente
+    resp = sock.recv(4096).decode()
+    # Si la respuesta es 406 es algun error
+
+    if resp == "420":
+        menuUN = """
+            +-------------------------------------+
+            | Datos erroneos                      |
+            +-------------------------------------+
+            """
+        print(menuUN)
+        menuUser()
+    elif resp == "421":
+        print("Datos invalidos o no existe.")
+        menuUser()
+    elif resp == "1":
+        menuUN = """
+            +------------------------------------------+
+            | Cuenta bloqueada, no puedes pedir libros |
+            +------------------------------------------+
+            """
+        print(menuUN)
+        print("Presione enter para volver al menú.")
+        input()
+        menuUser()
+    elif resp == "0":
+        menuUN = """
+            +------------------------------------------+
+            | Cuenta limpia, puedes pedir libros       |
+            +------------------------------------------+
+            """
+        print(menuUN)
+        print("Presione enter para volver al menú.")
+        input()
+        menuUser()
 
 
 def mostrar_libros():

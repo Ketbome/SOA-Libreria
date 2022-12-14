@@ -8,17 +8,17 @@ conn = psycopg2.connect(
 )
 
 # Crea un cursor para realizar consultas a la base de datos
-cursor = conn.cursor()
+#cursor = conn.cursor()
 
 # Ejecuta una consulta SQL
-cursor.execute("SELECT * FROM usuarios")
+#cursor.execute("SELECT * FROM usuarios")
 
 # Obtiene todos los resultados de la consulta
-results = cursor.fetchall()
+#results = cursor.fetchall()
 
 # Procesa los resultados
-for result in results:
-    print(result)
+# for result in results:
+#    print(result)
 
 # Cierra la conexión con la base de datos
-conn.close()
+# conn.close()

@@ -31,30 +31,30 @@ while True:
             try:
                 # Ejecuta la consulta
                 cursor = conn.cursor()
-                statement = "SELECT bloqueo FROM USUARIOS WHERE username='" + data["username"]+"';"
-               
+                statement = "SELECT bloqueo FROM USUARIOS WHERE username='" + \
+                    data["username"]+"';"
+
                 cursor.execute(statement)
 
                 # Muestra los resultados de la consulta
                 results = cursor.fetchall()
                 if len(results) == 1:
                     # Actualiza el libro con esa id
-                    statement = "SELECT bloqueo FROM  USUARIOS WHERE username = '" + data["username"]+"';"
+                    statement = "SELECT bloqueo FROM  USUARIOS WHERE username = '" + \
+                        data["username"]+"';"
                     cursor.execute(statement)
                     conn.commit()
                     print('Estado de la cuenta')
-                   
+
                     connection.sendall(str(results[0][0]).encode())
                 elif len(results) == 0:
                     # Se envia el 404 cuando no existe o se puso un mal dato
                     connection.sendall(str(420).encode())
-                
+
                 break
             except Exception as e:
                 print("Error al consultar: ", e)
-                connection.sendall(str(411).encode())
+                connection.sendall(str(421).encode())
                 break
     finally:
         connection.close()
-
-               
