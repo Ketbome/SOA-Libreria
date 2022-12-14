@@ -212,6 +212,12 @@ def menuUser():
     if opcion == 2:
         mostrar_libros()
         menuUser()
+    if opcion == 3:
+        reservarlibros()
+        menuUser()
+    if opcion == 4:
+        librospendientes()
+        menuUser()
     if opcion == 0:
         sesion["id"], sesion["username"], sesion["bloqueo"], sesion["rol"] = None, None, None, None
         menuSULI()
@@ -698,6 +704,132 @@ def mostrar_libros():
             print(table)
         else:
             print("Id no reconocida: " + sesion["id"])
+        print("Presione enter para volver al menú.")
+        input()
+    elif data["status"] == "404":
+        print("Error en la consulta: "+data["error"])
+    elif data["status"] == "401":
+        print("Error en parametros")
+
+
+def reservarlibros():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_address = ('localhost', 5010)
+    # Intenta la conexion en caso de no conectarse el servicio no esta encendido o no disponible
+    try:
+        sock.connect(server_address)
+    except:
+        menuUN = """
+            ---------------------------------------
+            | Servicio no disponible              |
+            ---------------------------------------
+            """
+        print(menuUN)
+        if sesion["rol"] == "0":
+            menuUser()
+        elif sesion["rol"] == "1":
+            menuAdmin()
+    id_libro = None
+
+    menuUN = """
+            ---------------------------------------
+            | Libro a reservar                    |
+            |-------------------------------------|
+            | Ingresar ID libro                   |
+            ---------------------------------------
+            nombre: """
+    id_libro = input(menuUN)
+
+   # Se tienen los valores y se hace reserva libro
+    arg = str({"id_libro": id_libro, "id_user": sesion["id"]}).replace(
+        "'", '"').encode()
+    # Se mandan los datos al cliente
+    sock.sendall(arg)
+    # Se espera la respuesta del cliente
+    data = sock.recv(4096).decode()
+    data = json.loads(data)
+    # Si la respuesta es 404 es algun error
+    if data["status"] == "404":
+        menuUN = """
+            +-------------------------------------+
+            | Error al registrar                  |
+            +-------------------------------------+
+            """
+        print(menuUN)
+        print("Presione enter para volver al menú.")
+        input()
+        menuUser()
+
+    elif data["status"] == "200":
+        menuUN = """
+            +-------------------------------------+
+            | Reserva de libro de forma correcta  |
+            +-------------------------------------+
+            """
+        print(menuUN)
+        print("Presione enter para volver al menú.")
+        input()
+        menuUser()
+
+    elif data["status"] == "401":
+        menuUN = """
+            +-------------------------------------+
+            | Libro No Disponible                 |
+            +-------------------------------------+
+            """
+        print(menuUN)
+        print("Presione enter para volver al menú.")
+        input()
+        menuUser()
+
+    elif data["status"] == "402":
+        menuUN = """
+            +-------------------------------------+
+            | Tienes una entrega pendiente        |
+            +-------------------------------------+
+            """
+        print(menuUN)
+        print("Presione enter para volver al menú.")
+        input()
+        menuUser()
+
+
+def librospendientes():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_address = ('localhost', 5012)
+    # Intenta la conexion en caso de no conectarse el servicio no esta encendido o no disponible
+    try:
+        sock.connect(server_address)
+    except:
+        menuUN = """
+            +----------------------------------------+
+            | Servicio no disponible                 |
+            +----------------------------------------+
+            """
+        print(menuUN)
+        print("Presione enter para volver al menú.")
+        input()
+        if sesion["rol"] == "0":
+            menuUser()
+        elif sesion["rol"] == "1":
+            menuAdmin()
+
+    id_user = sesion["id_user"]
+    # Se juntan los valores para enviarlos se hace el reemplazo y se encodea
+    arg = str({"id_user": id_user}
+              ).replace("'", '"').encode()
+    # Se manda al cliente los datos
+    sock.sendall(arg)
+    # Se espera la respuesta del cliente
+    data = sock.recv(4096).decode()
+    data = json.loads(data)
+    if data["status"] == "200":  # status 200 es el correcto
+        table = PrettyTable()
+        table.field_names = ["Usuario", "id_libro",
+                             "Nombre", "Autor", "id_prestamo", "Dias_atraso"]
+        for row in data["data"]:
+            table.add_row(row)
+        print(table)
         print("Presione enter para volver al menú.")
         input()
     elif data["status"] == "404":
