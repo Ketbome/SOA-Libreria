@@ -205,24 +205,30 @@ def menuUser():
     +-------------------------------------+
     
     Opción: """
-    opcion = int(input(menuGD2))
-    if opcion == 1:
-        estado_cuenta()
-        menuUser()
-    if opcion == 2:
-        mostrar_libros()
-        menuUser()
-    if opcion == 3:
-        reservarlibros()
-        menuUser()
-    if opcion == 4:
-        librospendientes()
-        menuUser()
-    if opcion == 0:
-        sesion["id"], sesion["username"], sesion["bloqueo"], sesion["rol"] = None, None, None, None
-        menuSULI()
-    else:
-        print("Opcion mal puesta.")
+    try:
+        opcion = int(input(menuGD2))
+        if opcion == 1:
+            estado_cuenta()
+            menuUser()
+        if opcion == 2:
+            mostrar_libros()
+            menuUser()
+        if opcion == 3:
+            reservarlibros()
+            menuUser()
+        if opcion == 4:
+            librospendientes()
+            menuUser()
+        if opcion == 0:
+            sesion["id"], sesion["username"], sesion["bloqueo"], sesion["rol"] = None, None, None, None
+            menuSULI()
+        else:
+            print("Opcion mal puesta.")
+            print("Presione enter para volver al menú.")
+            input()
+            menuUser()
+    except Exception as e:
+        print("Err: " + str(e))
         print("Presione enter para volver al menú.")
         input()
         menuUser()
@@ -247,30 +253,36 @@ def menuAdmin():
     +-------------------------------------+
     
     Opción: """
-    opcion = int(input(menuGD2))
+    try:
+        opcion = int(input(menuGD2))
 
-    if opcion == 1:
-        anadir_libros()
-        menuAdmin()
+        if opcion == 1:
+            anadir_libros()
+            menuAdmin()
 
-    if opcion == 2:
-        modificar_libros()
-        menuAdmin()
+        if opcion == 2:
+            modificar_libros()
+            menuAdmin()
 
-    if opcion == 3:
-        eliminar_libros()
-        menuAdmin()
+        if opcion == 3:
+            eliminar_libros()
+            menuAdmin()
 
-    if opcion == 4:
-        mostrar_libros()
-        menuAdmin()
+        if opcion == 4:
+            mostrar_libros()
+            menuAdmin()
 
-    if opcion == 0:
-        sesion["id"], sesion["username"], sesion["bloqueo"], sesion["rol"] = None, None, None, None
-        menuSULI()
-    else:
+        if opcion == 0:
+            sesion["id"], sesion["username"], sesion["bloqueo"], sesion["rol"] = None, None, None, None
+            menuSULI()
+        else:
+            print("Opcion mal puesta.")
+            menuAdmin()
+    except:
         print("Opcion mal puesta.")
-        menuAdmin()
+        print("Presione enter para volver al menú.")
+        input()
+        menuUser()
 
 
 ################################### FUNCIONES ########################################
@@ -796,7 +808,7 @@ def reservarlibros():
 
 def librospendientes():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_address = ('localhost', 5012)
+    server_address = ('localhost', 5004)
     # Intenta la conexion en caso de no conectarse el servicio no esta encendido o no disponible
     try:
         sock.connect(server_address)
@@ -813,29 +825,37 @@ def librospendientes():
             menuUser()
         elif sesion["rol"] == "1":
             menuAdmin()
-
-    id_user = sesion["id_user"]
     # Se juntan los valores para enviarlos se hace el reemplazo y se encodea
-    arg = str({"id_user": id_user}
+    arg = str({"id_user": sesion["id"]}
               ).replace("'", '"').encode()
     # Se manda al cliente los datos
     sock.sendall(arg)
     # Se espera la respuesta del cliente
     data = sock.recv(4096).decode()
+    #data = json.dumps(data)
     data = json.loads(data)
     if data["status"] == "200":  # status 200 es el correcto
         table = PrettyTable()
-        table.field_names = ["Usuario", "id_libro",
-                             "Nombre", "Autor", "id_prestamo", "Dias_atraso"]
+        table.field_names = ["id_libro", "Nombre",
+                             "Autor", "Dia Prestamo", "Dia entrega"]
         for row in data["data"]:
             table.add_row(row)
         print(table)
         print("Presione enter para volver al menú.")
         input()
+    elif data["status"] == "201":
+        menuUN = """
+            +-------------------------------------+
+            | No tienes entregas pendientes       |
+            +-------------------------------------+
+            """
+        print(menuUN)
+        print("Presione enter para volver al menú.")
+        input()
     elif data["status"] == "404":
-        print("Error en la consulta: "+data["error"])
-    elif data["status"] == "401":
-        print("Error en parametros")
+        print("Error")
+        print("Presione enter para volver al menú.")
+        input()
 
 
 ################################### MAIN ########################################
